@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+from statsmodels.stats.proportion import proportions_ztest
 
 # Açıklama: Verilen büyü başarı sonuçlarının (1=başarılı, 0=başarısız) 
 # ortalama başarı oranını döndürür.
@@ -8,7 +9,7 @@ from scipy import stats
 # Örnek:
 # calculate_mean_success_rate([1, 0, 1, 1]) → 0.75
 def calculate_mean_success_rate(spell_results):
-    pass
+    return sum(spell_results) / len(spell_results)
 
 # Açıklama: İki büyü grubunun başarı oranlarının farkını Z-Test ile karşılaştırır.
 # Input: sample1: List[int], sample2: List[int]
@@ -16,7 +17,11 @@ def calculate_mean_success_rate(spell_results):
 # Örnek:
 # perform_z_test([1,0,1,1], [0,1,0,0]) → (z_stat=1.41, p_value=0.15)
 def perform_z_test(sample1, sample2):
-    pass
+    return proportions_ztest(
+        [sum(sample1), sum(sample2)],
+        [len(sample1), len(sample2)]
+    )
+
 
 # Açıklama: İki grubun başarı oranları arasındaki farkı T-Test ile karşılaştırır.
 # Input: sample1: List[int], sample2: List[int]
@@ -24,7 +29,8 @@ def perform_z_test(sample1, sample2):
 # Örnek:
 # perform_t_test([3,4,5], [2,3,2]) → (1.5, 0.18)
 def perform_t_test(sample1, sample2):
-    pass
+    t, p = stats.ttest_ind(sample1, sample2)
+    return float(t), float(p)
 
 # Açıklama: Büyü türleri ve başarı durumları arasındaki bağımsızlığı test eder.
 # Input: contingency_table: List[List[int]]
@@ -33,7 +39,8 @@ def perform_t_test(sample1, sample2):
 # Örnek:
 # perform_chi_square_test([[10, 5], [6, 9]]) → (1.20, 0.27)
 def perform_chi_square_test(contingency_table):
-   pass
+     return stats.chi2_contingency(contingency_table)[:2]
+
 
 # Açıklama: 3 veya daha fazla büyü grubunun başarı oranlarını ANOVA testi ile karşılaştırır.
 # Input: *groups: List[List[int]]
@@ -41,15 +48,17 @@ def perform_chi_square_test(contingency_table):
 # Örnek:
 # perform_anova_test([1,2,3], [2,2,2], [3,3,3]) → (4.5, 0.03)
 def perform_anova_test(*groups):
-    pass
+    return stats.f_oneway(*groups)
 
 # Açıklama: Verilen başarı oranıyla n adet rastgele 1/0 sonucu döndürür.
 # Input: n: int, success_rate: float (0-1 arası)
 # Output: List[int]
 # Örnek:
 # generate_random_spell_results(5, 0.6) → [1,0,1,1,0]
+
 def generate_random_spell_results(n, success_rate):
-    pass
+    return np.random.binomial(1, success_rate, n).tolist()
+
 
 
 # Açıklama: İki büyüyü Z-Test ve T-Test ile karşılaştırır ve sonucu döndürür.
@@ -57,16 +66,23 @@ def generate_random_spell_results(n, success_rate):
 # Output: Dict (z ve t test sonuçları)
 # Örnek:
 # compare_spells([1,1,0], [0,0,1])  → {'z': (1.23, 0.21), 't': (1.10, 0.28)}
+
 def compare_spells(spell1_results, spell2_results):
-   pass
+    return {
+        "z": perform_z_test(spell1_results, spell2_results),
+        "t": perform_t_test(spell1_results, spell2_results)
+    }
+
 
 # Açıklama: İki büyü arasındaki fark anlamlı mı (p<0.05)?
 # Input: spell1_results, spell2_results, alpha
 # Output: bool
 # Örnek:
 # is_spell_significant([1,1,1], [0,0,0], alpha=0.05) → True
+
 def is_spell_significant(spell1_results, spell2_results, alpha=0.05):
-   pass
+    return perform_z_test(spell1_results, spell2_results)[1] < alpha
+
 
 
 def generate_spell_summary_report(spell_results):
@@ -92,4 +108,7 @@ def generate_spell_summary_report(spell_results):
         Örnek: "Toplam Deneme: 3, Basarili: 2, Oran: 0.67"
         (Metinde "Toplam" kelimesi geçmeli.)
     """
-    pass
+    n = len(spell_results)
+    s = sum(spell_results)
+    x = s/n
+    return f"Toplam Deneme: {n}, Basarili: {s}, Oran: {x:.2f}"
